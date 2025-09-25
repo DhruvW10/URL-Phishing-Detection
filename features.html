@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>SafeLink - Factors Analysis</title>
+    <style>
+        :root {
+            --primary: #6366F1;
+            --primary-dark: #4F46E5;
+            --success: #10B981;
+            --danger: #EF4444;
+            --background: #111827;
+            --surface: #1F2937;
+            --surface-light: #374151;
+            --text: #F9FAFB;
+            --text-light: #9CA3AF;
+            --border: #374151;
+        }
+
+        :root[data-theme="light"] {
+            --background: #FFFFFF;
+            --surface: #F9FAFB;
+            --surface-light: #E5E7EB;
+            --text: #111827;
+            --text-light: #6B7280;
+            --border: #D1D5DB;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: var(--background);
+            color: var(--text);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: var(--surface);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s ease;
+            position: relative;
+        }
+
+        .theme-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 48px;
+            height: 24px;
+            border-radius: 12px;
+            background-color: var(--surface-light);
+            border: 2px solid var(--border);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            padding: 2px;
+            transition: all 0.3s ease;
+            z-index: 10;
+            overflow: hidden;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .theme-toggle.active {
+            background-color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .theme-toggle-slider {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background-color: var(--text);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            transform: translateX(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .theme-toggle.active .theme-toggle-slider {
+            transform: translateX(24px);
+        }
+
+        .theme-toggle-icon {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 12px;
+            height: 12px;
+            fill: var(--text);
+            transition: all 0.3s ease;
+            opacity: 0.7;
+        }
+
+        .theme-toggle-icon.dark {
+            left: 6px;
+            opacity: 1;
+        }
+
+        .theme-toggle-icon.light {
+            right: 6px;
+            opacity: 1;
+        }
+
+        .theme-toggle.active .theme-toggle-icon.dark {
+            opacity: 0.3;
+        }
+
+        .theme-toggle:not(.active) .theme-toggle-icon.light {
+            opacity: 0.3;
+        }
+
+        h1 {
+            color: var(--text);
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 24px;
+            transition: color 0.3s ease;
+        }
+
+        .url-display {
+            background-color: var(--surface-light);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            word-break: break-all;
+            font-family: monospace;
+            transition: background-color 0.3s ease;
+        }
+
+        .conclusion-box {
+            background-color: var(--surface-light);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            text-align: center;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+
+        .conclusion-box .verdict {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            transition: color 0.3s ease;
+        }
+
+        .conclusion-box .details {
+            color: var(--text-light);
+            font-size: 14px;
+            transition: color 0.3s ease;
+        }
+
+        .conclusion-box.legitimate {
+            border: 2px solid var(--success);
+        }
+
+        .conclusion-box.phishing {
+            border: 2px solid var(--danger);
+        }
+
+        .conclusion-box.neutral {
+            border: 2px solid var(--text-light);
+        }
+
+        .features-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: var(--surface-light);
+            border-radius: 8px;
+            overflow: hidden;
+            transition: background-color 0.3s ease;
+        }
+
+        .features-table th {
+            background-color: var(--surface);
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--primary);
+            border-bottom: 2px solid var(--border);
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+
+        .features-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            line-height: 1.5;
+            transition: border-color 0.3s ease, color 0.3s ease;
+        }
+
+        .features-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+
+        .status.legitimate {
+            background-color: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+        }
+
+        .status.phishing {
+            background-color: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+        }
+
+        .status.neutral {
+            background-color: rgba(156, 163, 175, 0.2);
+            color: var(--text-light);
+        }
+
+        .error-message {
+            color: var(--danger);
+            text-align: center;
+            padding: 20px;
+            background-color: var(--surface-light);
+            border-radius: 8px;
+            margin-top: 20px;
+            transition: background-color 0.3s ease;
+        }
+
+        .factors-summary {
+            display: flex;
+            justify-content: space-around;
+            background-color: var(--surface-light);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            gap: 15px;
+            transition: background-color 0.3s ease;
+        }
+
+        .summary-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .summary-label {
+            font-size: 12px;
+            color: var(--text-light);
+            margin-bottom: 8px;
+            transition: color 0.3s ease;
+        }
+
+        .summary-count {
+            font-size: 20px;
+            font-weight: 700;
+            padding: 8px 16px;
+            border-radius: 6px;
+            min-width: 40px;
+            text-align: center;
+        }
+
+        .summary-count.legitimate {
+            background-color: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+        }
+
+        .summary-count.phishing {
+            background-color: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+        }
+
+        .summary-count.neutral {
+            background-color: rgba(156, 163, 175, 0.2);
+            color: var(--text-light);
+        }
+
+        @media (max-width: 768px) {
+            .features-table {
+                display: block;
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <button class="theme-toggle" id="themeToggle" title="Toggle theme">
+            <div class="theme-toggle-slider"></div>
+            <svg class="theme-toggle-icon dark" viewBox="0 0 24 24">
+                <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z"/>
+            </svg>
+            <svg class="theme-toggle-icon light" viewBox="0 0 24 24">
+                <path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.166a.75.75 0 00-1.06-1.06l-1.591 1.59a.75.75 0 101.06 1.061l1.591-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.834 18.894a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 10-1.061 1.06l1.59 1.591zM12 18a.75.75 0 01.75.75V21a.75.75 0 01-1.5 0v-2.25A.75.75 0 0112 18zM7.758 17.303a.75.75 0 00-1.061-1.06l-1.591 1.59a.75.75 0 001.06 1.061l1.591-1.59zM6 12a.75.75 0 01-.75.75H3a.75.75 0 010-1.5h2.25A.75.75 0 016 12zM6.697 7.757a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 00-1.061 1.06l1.59 1.591z"/>
+            </svg>
+        </button>
+        <h1>SafeLink Analysis Results</h1>
+        <div class="url-display" id="analyzedUrl"></div>
+        <div id="conclusionBox" class="conclusion-box">
+            <div class="verdict">Analyzing URL...</div>
+            <div class="details">Calculating factors analysis results...</div>
+        </div>
+        <div id="featuresContainer">
+            <div id="factorsSummary" class="factors-summary">
+                <div class="summary-item">
+                    <span class="summary-label">Legitimate Factors:</span>
+                    <span class="summary-count legitimate" id="legitimateCount">0</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Phishing Factors:</span>
+                    <span class="summary-count phishing" id="phishingCount">0</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Neutral Factors:</span>
+                    <span class="summary-count neutral" id="neutralCount">0</span>
+                </div>
+            </div>
+            <table class="features-table">
+                <thead>
+                    <tr>
+                        <th>Factors</th>
+                        <th>Status</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody id="featuresTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+    <script src="features.js"></script>
+</body>
+</html> 

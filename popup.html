@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>SafeLink</title>
+    <style>
+      :root {
+        --primary: #6366F1;
+        --primary-dark: #4F46E5;
+        --success: #10B981;
+        --danger: #EF4444;
+        --background: #111827;
+        --surface: #1F2937;
+        --surface-light: #374151;
+        --text: #F9FAFB;
+        --text-light: #9CA3AF;
+        --border: #374151;
+      }
+
+      :root[data-theme="light"] {
+        --background: #FFFFFF;
+        --surface: #F9FAFB;
+        --surface-light: #E5E7EB;
+        --text: #111827;
+        --text-light: #6B7280;
+        --border: #D1D5DB;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        margin: 0;
+        padding: 16px;
+        width: 340px;
+        background-color: var(--background);
+        color: var(--text);
+        border-radius: 16px;
+        overflow: hidden;
+        transition: background-color 0.3s ease, color 0.3s ease;
+      }
+
+      .container {
+        background-color: var(--surface);
+        border-radius: 12px;
+        padding: 16px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        transition: background-color 0.3s ease;
+        position: relative;
+      }
+
+      .theme-toggle {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        width: 48px;
+        height: 24px;
+        border-radius: 12px;
+        background-color: var(--surface-light);
+        border: 2px solid var(--border);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        padding: 2px;
+        transition: all 0.3s ease;
+        z-index: 10;
+        overflow: hidden;
+      }
+
+      .theme-toggle:hover {
+        transform: scale(1.05);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      }
+
+      .theme-toggle.active {
+        background-color: var(--primary);
+        border-color: var(--primary);
+      }
+
+      .theme-toggle-slider {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background-color: var(--text);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        transform: translateX(0);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+
+      .theme-toggle.active .theme-toggle-slider {
+        transform: translateX(24px);
+      }
+
+      .theme-toggle-icon {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 12px;
+        height: 12px;
+        fill: var(--text);
+        transition: all 0.3s ease;
+        opacity: 0.7;
+      }
+
+      .theme-toggle-icon.dark {
+        left: 6px;
+        opacity: 1;
+      }
+
+      .theme-toggle-icon.light {
+        right: 6px;
+        opacity: 1;
+      }
+
+      .theme-toggle.active .theme-toggle-icon.dark {
+        opacity: 0.3;
+      }
+
+      .theme-toggle:not(.active) .theme-toggle-icon.light {
+        opacity: 0.3;
+      }
+
+      h1 {
+        font-size: 18px;
+        font-weight: 600;
+        margin: 0 0 16px 0;
+        color: var(--text);
+        text-align: center;
+        transition: color 0.3s ease;
+      }
+
+      .input-group {
+        position: relative;
+        margin-bottom: 16px;
+      }
+
+      input[type="text"] {
+        width: 100%;
+        padding: 10px 12px;
+        font-size: 14px;
+        line-height: 1.5;
+        color: var(--text);
+        background-color: var(--surface-light);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        box-sizing: border-box;
+      }
+
+      input[type="text"]:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+      }
+
+      input[type="text"]::placeholder {
+        color: var(--text-light);
+      }
+
+      button {
+        width: 100%;
+        padding: 10px 16px;
+        font-size: 14px;
+        font-weight: 500;
+        color: white;
+        background-color: var(--primary);
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+      }
+
+      button:hover {
+        background-color: var(--primary-dark);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+      }
+
+      button:active {
+        transform: translateY(0);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+      }
+
+      .result {
+        margin-top: 16px;
+        padding: 12px;
+        border-radius: 8px;
+        font-size: 14px;
+        line-height: 1.5;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background-color: var(--surface-light);
+      }
+
+      .result::before {
+        content: '';
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+      }
+
+      .legit {
+        color: var(--success);
+        background-color: rgba(16, 185, 129, 0.1);
+        border: 1px solid rgba(16, 185, 129, 0.2);
+      }
+
+      .legit::before {
+        background-color: var(--success);
+      }
+
+      .phish {
+        color: var(--danger);
+        background-color: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+      }
+
+      .phish::before {
+        background-color: var(--danger);
+      }
+
+      .info {
+        margin-top: 16px;
+        font-size: 13px;
+        text-align: center;
+        color: var(--text-light);
+        transition: color 0.3s ease;
+      }
+
+      .info a {
+        color: var(--primary);
+        text-decoration: none;
+        transition: color 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .info a:hover {
+        color: var(--text);
+        text-decoration: underline;
+      }
+
+      .info svg {
+        width: 16px;
+        height: 16px;
+        fill: currentColor;
+      }
+
+      .auto-fill-info {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        color: var(--success);
+        margin-top: 6px;
+        padding: 4px 8px;
+        background-color: rgba(16, 185, 129, 0.1);
+        border-radius: 6px;
+        animation: fadeIn 0.3s ease;
+        transition: opacity 0.3s ease, transform 0.3s ease;
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .auto-fill-info.fade-out {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+
+      .auto-fill-info svg {
+        width: 14px;
+        height: 14px;
+        fill: currentColor;
+      }
+
+      .secondary-btn {
+        width: 100%;
+        padding: 8px 12px;
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--text);
+        background-color: var(--surface-light);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        margin-top: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+      }
+
+      .secondary-btn:hover {
+        background-color: var(--border);
+        transform: translateY(-1px);
+      }
+
+      .secondary-btn svg {
+        width: 14px;
+        height: 14px;
+        fill: currentColor;
+      }
+
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(4px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      .result {
+        animation: fadeIn 0.3s ease;
+      }
+
+      /* Dino Game Styles */
+      .game-container {
+        display: none;
+        margin-top: 12px;
+        padding: 12px;
+        background-color: var(--surface-light);
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        animation: fadeIn 0.3s ease;
+        transition: background-color 0.3s ease, border-color 0.3s ease;
+        max-width: 100%;
+        overflow: hidden;
+      }
+
+      .game-area {
+        width: 280px;
+        height: 120px;
+        background-color: var(--background);
+        border: 2px solid var(--border);
+        border-radius: 6px;
+        position: relative;
+        overflow: hidden;
+        margin: 0 auto;
+        transition: background-color 0.3s ease, border-color 0.3s ease;
+      }
+
+      .ground {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background-color: var(--border);
+        transition: background-color 0.3s ease;
+      }
+
+      .player {
+        position: absolute;
+        bottom: 2px;
+        left: 20px;
+        width: 20px;
+        height: 20px;
+        background-color: var(--primary);
+        border-radius: 4px;
+        transition: bottom 0.3s ease;
+        z-index: 10;
+      }
+
+      .obstacle {
+        position: absolute;
+        bottom: 2px;
+        right: -20px;
+        width: 16px;
+        height: 16px;
+        background-color: var(--danger);
+        border-radius: 2px;
+        z-index: 5;
+      }
+
+      .score {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text);
+        background-color: rgba(0, 0, 0, 0.7);
+        padding: 4px 8px;
+        border-radius: 4px;
+        z-index: 15;
+        transition: color 0.3s ease;
+      }
+
+
+
+      .game-instructions {
+        text-align: center;
+        font-size: 11px;
+        color: var(--text-light);
+        margin-top: 8px;
+        transition: color 0.3s ease;
+      }
+
+      .jumping {
+        animation: jump 0.5s ease-out;
+      }
+
+      @keyframes jump {
+        0% { bottom: 2px; }
+        50% { bottom: 60px; }
+        100% { bottom: 2px; }
+      }
+
+      .game-over {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: rgba(0, 0, 0, 0.9);
+        color: #fff;
+        padding: 16px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        z-index: 20;
+        display: none;
+        transition: color 0.3s ease;
+        text-align: center;
+        min-width: 120px;
+      }
+
+      .retry-btn {
+        margin-top: 12px;
+        padding: 8px 16px;
+        font-size: 12px;
+        font-weight: 500;
+        color: white;
+        background-color: var(--primary);
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: block;
+        width: 100%;
+      }
+
+      .retry-btn:hover {
+        background-color: var(--primary-dark);
+        transform: translateY(-1px);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+              <button class="theme-toggle" id="themeToggle" title="Toggle theme">
+          <div class="theme-toggle-slider"></div>
+          <svg class="theme-toggle-icon dark" viewBox="0 0 24 24">
+            <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z"/>
+          </svg>
+          <svg class="theme-toggle-icon light" viewBox="0 0 24 24">
+            <path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.166a.75.75 0 00-1.06-1.06l-1.591 1.59a.75.75 0 101.06 1.061l1.591-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.834 18.894a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 10-1.061 1.06l1.59 1.591zM12 18a.75.75 0 01.75.75V21a.75.75 0 01-1.5 0v-2.25A.75.75 0 0112 18zM7.758 17.303a.75.75 0 00-1.061-1.06l-1.591 1.59a.75.75 0 001.06 1.061l1.591-1.59zM6 12a.75.75 0 01-.75.75H3a.75.75 0 010-1.5h2.25A.75.75 0 016 12zM6.697 7.757a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 00-1.061 1.06l1.59 1.591z"/>
+          </svg>
+        </button>
+      <h1>SafeLink</h1>
+      <div class="input-group">
+        <input id="urlInput" type="text" placeholder="Enter URL to check" />
+        <div id="autoFillInfo" class="auto-fill-info" style="display: none;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+          </svg>
+          Current page URL auto-filled
+        </div>
+        <button id="useCurrentUrlBtn" class="secondary-btn" style="display: none;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+          </svg>
+          Use Current URL
+        </button>
+      </div>
+      <button id="checkBtn">Check URL</button>
+      <div id="result" class="result"></div>
+      
+      <!-- Dino Game Container -->
+      <div id="gameContainer" class="game-container">
+        <div class="game-area">
+          <div class="score">Score: <span id="gameScore">0</span></div>
+          <div class="ground"></div>
+          <div id="player" class="player"></div>
+          <div id="gameOver" class="game-over">
+            Game Over!<br>
+            Final Score: <span id="finalScore">0</span>
+            <button id="retryBtn" class="retry-btn">Retry</button>
+          </div>
+        </div>
+        <div class="game-instructions">Press SPACEBAR to jump and dodge obstacles!</div>
+      </div>
+      
+      <div class="info">
+        <a id="moreInfo" href="#" target="_blank">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M17 2h-4v1h4V2zM7 2v1h4V2H7zm0 0V1h10v1H7zm10 1v1H7V3h10zM7 3H4v18h16V3h-3zM9 7h6v2H9V7zm0 4h6v2H9v-2zm0 4h4v2H9v-2zm8-7l-1.41 1.41L13 11l2.59 2.59L17 12.17V7z"/>
+          </svg>
+          Factor details
+        </a>
+      </div>
+    </div>
+    <script src="popup.js"></script>
+  </body>
+</html>
